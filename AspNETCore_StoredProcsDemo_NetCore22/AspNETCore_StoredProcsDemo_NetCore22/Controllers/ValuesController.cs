@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNETCore_StoredProcsDemo_NetCore22.Data;
+using AspNETCore_StoredProcsDemo_NetCore22.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AspNETCore_StoredProcsDemo_NetCore22.Controllers
@@ -10,36 +12,50 @@ namespace AspNETCore_StoredProcsDemo_NetCore22.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+        private readonly ValuesRepository _repository;
+
+        public ValuesController(ValuesRepository repository)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        }
+
         // GET api/values
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public async Task<List<Value>> Get()
         {
-            return new string[] { "value1", "value2" };
+            return await _repository.GetAll();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public async Task<ActionResult<Value>> Get(int id)
         {
-            return "value";
+            var response = await _repository.GetById(id);
+            if (response==null)
+            {
+                return NotFound();
+            }
+            return response;
         }
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task Post([FromBody] Value value)
         {
+            await _repository.Insert(value);
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        //// PUT api/values/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task Delete(int id)
         {
+            await _repository.DeleteById(id);
         }
     }
 }
